@@ -1,0 +1,30 @@
+# Ignore everything by default
+*
+
+# Except .txt files (allowing all .txt files in the project)
+!*.txt
+
+# Exclude Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Exclude virtual environment directories
+venv/
+env/
+
+# Exclude build and distribution directories
+build/
+dist/
+*.egg-info/
+
+# Exclude log files
+*.log
+
+# Exclude IDE-specific files
+.vscode/
+.idea/
+
+# Exclude other system-specific files (like macOS or Windows)
+.DS_Store
+Thumbs.db

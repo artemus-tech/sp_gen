@@ -1,0 +1,14 @@
+{
+  "excess_min": 1.005,
+  "excess_max": 1.01,
+  "excess_num": 12,
+  "shape": 3.0,
+  "scale": 2.5,
+  "NC": 0.2,
+  "sp_number": 100000,
+  "file_numb": 10,
+  "C": 0.10,
+  "q0" : 0.02,
+  "qn" : 5.00,
+  "q_num" : 150
+}
