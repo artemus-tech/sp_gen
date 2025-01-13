@@ -87,7 +87,7 @@ def close_conn(connection):
         print(f"Error closing connection: {e}")
 
 
-
+'''
 
 def get_data_by_id(table_name, column_name, record_id):
     """
@@ -107,6 +107,7 @@ def get_data_by_id(table_name, column_name, record_id):
         return rows
     finally:
         close_conn(connection)
+'''
 
 
 def get_data_by_id(table_name, column_name, record_id):
@@ -167,7 +168,7 @@ def get_fields_data(conn, table_name, field_names):
     # SQL query to select the specified fields from the specified table
     fields_str = ', '.join(field_names)
     #query = f"SELECT {fields_str} FROM {table_name};"
-    query = f"SELECT {fields_str} FROM {table_name} WHERE path like '%_excess_%';"
+    query = f"SELECT {fields_str} FROM {table_name} WHERE real_nc=-1;"
     #query="select * from sp_gen where path like '%_excess_%'"
 
     # Execute the query
@@ -195,14 +196,7 @@ def insert_data(table_name, data_dict):
     :param table_name: Name of the table to insert data into.
     :param data_dict: Dictionary containing column names as keys and the values to insert.
     """
-    # Database connection parameters
-    db_params = {
-        'dbname': 'your_database_name',  # replace with your database name
-        'user': 'your_user',  # replace with your database username
-        'password': 'your_password',  # replace with your database password
-        'host': 'localhost',  # replace with your host (or use 'localhost')
-        'port': 5432  # replace with your PostgreSQL port, default is 5432
-    }
+
 
     try:
         # Connect to the PostgreSQL database

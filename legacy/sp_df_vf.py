@@ -173,14 +173,14 @@ def clear():
 
 if __name__ == '__main__':
     conn = dbassets.get_conn()
-    sql_result = dbassets.get_fields_data(conn, "sp_gen",["id","path", "rglobal","rmin", "rmax"])
+    sql_result = dbassets.get_fields_data(conn, "sp_gen",["id","src_path", "rglobal","rmin", "rmax"])
 
 
     for row in sql_result:
         plt.clf()
         rglobal = float(row['rglobal'])
         rmax = float(row['rmax'])
-        data = np.loadtxt(row["path"])
+        data = np.loadtxt(row["src_path"])
         n=10
         rmiddle = float(np.array([el for el in data[:, 3]]).mean())
 
@@ -200,7 +200,7 @@ if __name__ == '__main__':
         plt.xlabel('R,nm')
         plt.plot(arg, func, "go-", markersize=8, label="Density")
         plt.gcf()
-        current_path=dirname(row["path"])
+        current_path=dirname(row["src_path"])
         full_target_path = create_dir_with_date(current_path,"sp_df_vol_fr")
         plt.savefig(f"{full_target_path}\\{row['id']}.png")
         np.savetxt(f"{full_target_path}\\{row['id']}.txt", np.c_[arg, func])

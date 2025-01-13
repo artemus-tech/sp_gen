@@ -3,18 +3,18 @@ import subprocess
 
 # Define functions to run different scripts
 def run_script_1():
-    print("Running Script 1...")
-    subprocess.run(["python", "sp_df.py"])
+    print("SP_DF_VOLUME_FRACTION")
+    subprocess.run(["python", "sp_df_vf.py"])
 
 def run_script_2():
-    print("Running Script 2...")
-    subprocess.run(["python", "script2.py"])
+    print("SP_INTENSITY_EVALUATION")
+    subprocess.run(["python", "sp_weave_eval_process_optimize.py"])
 
 def handle_message(message):
     # Depending on the message, run different scripts
-    if message == "run_script_1":
+    if message == "sp_df_vf":
         run_script_1()
-    elif message == "run_script_2":
+    elif message == "sp_eval":
         run_script_2()
     else:
         print(f"Unknown message: {message}")

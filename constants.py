@@ -32,6 +32,7 @@ active_table_dict={
     "sp_dec":"sp_dec",
     "sp_res":"sp_res",
     "sp_vrija":"sp_vrija",
-    "sp_gen_legacy":"generate_results"
+    "sp_gen_legacy":"generate_results",
+    "sp_eval_legacy":"eval_results"
 
 }

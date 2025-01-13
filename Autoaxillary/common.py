@@ -1,4 +1,5 @@
 import os
+import typing
 from datetime import datetime
 from typing import Union
 
@@ -33,5 +34,40 @@ def get_rmin(m:np.ndarray, column_index:int=3)->float:
     rmin = np.min(m[:, column_index])
     return np_to_pg(rmin)
 
+def array1d_get_min(arr:np.ndarray)->typing.Union[float,None]:
+    if array1d_is_non_zero_or_empty(arr):
+        min = np.min(arr)
+        return np_to_pg(min)
+
+def array1d_get_max(arr:np.ndarray)->typing.Union[float,None]:
+    if array1d_is_non_zero_or_empty(arr):
+        max = np.max(arr)
+        return np_to_pg(max)
+
+def array1d_get_size(arr:np.ndarray)->typing.Union[float,None]:
+    if array1d_is_non_zero_or_empty(arr):
+        num = arr.shape[0]
+        return np_to_pg(num)
+
+def array1d_is_non_zero_or_empty(a: np.ndarray):
+    """
+    :param a:assume that it's 1d numpy array
+    :return: will get True if dimensions are correct
+    """
+    if a is not None:
+        if a.ndim == 1:
+            if a.shape[0] > 0 and not np.all(a == 0):
+                return True
+    return False
+
 def np_to_pg(value:Union[np.float64, np.int64])->Union[float,int]:
-    return value.item()
+    if isinstance(value, (np.generic, np.number)):
+        try:
+            result=value.item()
+        except AttributeError:
+            print("Has not item() method")
+            result = value
+        return result
+    else:
+        return value
+
