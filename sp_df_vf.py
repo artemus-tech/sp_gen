@@ -163,45 +163,44 @@ def get_density_df(upperR, step, m):
 
     return (args, v)
 
-'''
-def clear():
-    files = glob.glob(f"C:\sp-df-volume-fraction\*")
-
-    for f in files:
-        os.remove(f)
-'''
 
 if __name__ == '__main__':
     conn = dbassets.get_conn()
-    sql_result = dbassets.get_fields_data(conn, "sp_gen",["id","path", "rglobal","rmin", "rmax"])
-
+    sql_result = dbassets.get_fields_data(conn, "sp_gen",
+                                          ["id","src_path", "rglobal","rmin", "rmax"])
+    n = 10
+    should_same_plot_result = False
+    current_iter_index=0
 
     for row in sql_result:
-        plt.clf()
+        print(current_iter_index)
         rglobal = float(row['rglobal'])
         rmax = float(row['rmax'])
-        data = np.loadtxt(row["path"])
-        n=10
-        rmiddle = float(np.array([el for el in data[:, 3]]).mean())
+        data = np.loadtxt(row["src_path"])
 
+        rmiddle = float(np.array([el for el in data[:, 3]]).mean())
         dbassets.update_field_double(conn, field = "rmean",table="sp_gen",id=row['id'], value=rmiddle)
         conn.commit()
-        arg, func = get_density_df(rglobal + rmax, n, data)
 
+        arg, func = get_density_df(rglobal + rmax, n, data)
         phi_by_five_sp_layers=float(np.mean(func[:5]))
         dbassets.update_field_double(conn, field = "real_nc",table='sp_gen',id=row['id'], value=phi_by_five_sp_layers)
-
         conn.commit()
+
         dbassets.update_field_double(conn, field = "real_n",table='sp_gen',id=row['id'], value=data.shape[0])
         conn.commit()
 
-        plt.grid(True)
-        plt.ylabel('volume fraction')
-        plt.xlabel('R,nm')
-        plt.plot(arg, func, "go-", markersize=8, label="Density")
-        plt.gcf()
-        current_path=dirname(row["path"])
+        current_path = dirname(row["src_path"])
         full_target_path = create_dir_with_date(current_path,"sp_df_vol_fr")
-        plt.savefig(f"{full_target_path}\\{row['id']}.png")
         np.savetxt(f"{full_target_path}\\{row['id']}.txt", np.c_[arg, func])
+        current_iter_index+=1
+
+        if should_same_plot_result:
+            plt.clf()
+            plt.grid(True)
+            plt.ylabel('volume fraction')
+            plt.xlabel('R,nm')
+            plt.plot(arg, func, "go-", markersize=8, label="Density")
+            plt.gcf()
+            plt.savefig(f"{full_target_path}\\{row['id']}.png")
     conn.close()

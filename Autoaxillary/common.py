@@ -71,3 +71,20 @@ def np_to_pg(value:Union[np.float64, np.int64])->Union[float,int]:
     else:
         return value
 
+
+
+def custom_std(arrays):
+    # Stack the arrays to form a 2D matrix (rows = arrays, columns = elements in each array)
+    stacked_arrays = np.array(arrays)
+
+    # Number of arrays (N) and elements per array (M)
+    N = stacked_arrays.shape[0]
+
+    # Calculate the mean of each column (i.e., each corresponding element across arrays)
+    means = np.mean(stacked_arrays, axis=0)
+
+    # Calculate the sum of squared differences from the mean for each column
+    sum_squared_diff = np.sum((stacked_arrays - means) ** 2, axis=0)
+
+    # Return the standard deviation with the custom divisor (N * (N - 1))
+    return np.sqrt(sum_squared_diff / (N * (N - 1)))
