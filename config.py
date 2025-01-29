@@ -12,3 +12,5 @@ def load_settings(file_name='app.settings.json'):
     except FileNotFoundError:
         print(f"Error: {file_path} not found.")
         return None
+
+
