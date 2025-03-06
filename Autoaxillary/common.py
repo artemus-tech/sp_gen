@@ -88,3 +88,20 @@ def custom_std(arrays):
 
     # Return the standard deviation with the custom divisor (N * (N - 1))
     return np.sqrt(sum_squared_diff / (N * (N - 1)))
+
+
+
+def convert_list_of_dicts_to_dict(list_of_dicts):
+    # Initialize an empty dictionary to store the results
+    result = {}
+
+    # Loop through each dictionary in the list
+    for d in list_of_dicts:
+        for key, value in d.items():
+            # If the key is not already in the result dictionary, add it with an empty list
+            if key not in result:
+                result[key] = []
+            # Append the value to the corresponding key's list
+            result[key].append(value)
+
+    return result
