@@ -36,3 +36,10 @@ active_table_dict={
     "sp_eval_legacy":"eval_results"
 
 }
+path_speval = 'C:\sp_gen\legacy\data'
+path_intensity_sum_norm_avg='C:\sp_gen\legacy\data\sp_intensity_sum_norm_avg'
+path_avg  = "C:\sp_gen\legacy\data\sp_avg_eval"
+path_trapezoid_vrija ="C:\sp_gen\legacy\data\sp_vrija_trapezoid"
+path_integral  = "C:\sp_gen\legacy\data\sp_intensity_integral"
+path_vrija ="C:\sp_gen\legacy\data\sp_vrija_no_volume_complex"
+path_to_lm_dec="C:\sp_gen\legacy\data\sp_lm_dec_intensity"

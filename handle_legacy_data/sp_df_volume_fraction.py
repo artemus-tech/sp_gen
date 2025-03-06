@@ -19,29 +19,23 @@ def get_spheres_intersect(r1, r2, centerDistance):
     return np.pi * (2.0 / 3.0 * (r1 ** 3 + r2 ** 3) - (r1 ** 2 - r2 ** 2) ** 2 / (
                 4 * centerDistance) - 0.5 * centerDistance * (r1 ** 2 + r2 ** 2) + centerDistance ** 3 / 12.0)
 
-
 def get_sphere_segment(h, R):
     return np.pi * (R * h ** 2 - h ** 3 / 3)
-
 
 def get_sphere_volume(R):
     return 4.0 / 3.0 * np.pi * R ** 3
 
-
 def get_sphere_radius(V):
     return np.power(3.0 / 4.0 * V / np.pi, 1.0 / 3.0)
-
 
 def get_height_segments(r, R0, R):
     inner = R0 + (R0 ** 2 - R ** 2 + r ** 2) / (2 * r)
     outer = R + (R0 ** 2 - R ** 2 - r ** 2) / (2 * r)
     return (inner, outer)
 
-
 def get_outer_volume(r, R0, R):
     inner, outer = get_height_segments(r, R0, R)
     return get_sphere_segment(inner, R0) - get_sphere_segment(outer, R)
-
 
 # R1,R2 slices
 def getVolumeDependsOn(x, y, z, rParticle, R1, R2):
