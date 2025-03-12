@@ -1,22 +1,5 @@
-import psycopg2
-from psycopg2 import sql
 from psycopg2 import extras
-#pg_dump -U postgres -h localhost -p 5432 -F p -f backup.sql spgen
-'''
-def get_field_data(conn, table_name, field_name):
-    # Create a cursor object to interact with the database
-    cursor = conn.cursor()
-    # SQL query to select the specified field from the specified table
-    query = f"SELECT {field_name} FROM {table_name};"
-    # Execute the query
-    cursor.execute(query)
-    # Fetch all the results
-    results = cursor.fetchall()
-    # Close the cursor and connection
-    cursor.close()
-    conn.close()
-    return results
-'''
+
 def get_conn():
     return  psycopg2.connect(
         host="localhost",
@@ -157,7 +140,7 @@ def insert_data(table_name, data_dict):
         values = tuple(data_dict.values())
 
         # Create the SQL query for insertion
-        query = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
+        query = sql.SQL("INSERT INTO {} ({}) VALUES ({}) RETURNING id").format(
             sql.Identifier(table_name),  # Table name
             sql.SQL(', ').join(map(sql.Identifier, columns)),  # Column names
             sql.SQL(', ').join(sql.Placeholder() * len(values))  # Placeholder for values
@@ -165,13 +148,12 @@ def insert_data(table_name, data_dict):
 
         # Execute the insert query with the data
         cursor.execute(query, values)
-        inserted_id = cursor.fetchone()[0]
-
+        result = cursor.fetchone()
+        inserted_id = result[0] if result else None
         # Commit the transaction
         conn.commit()
-
+        print(inserted_id)
         print(f"Data inserted successfully into {table_name}.")
-
         return inserted_id
 
     except Exception as e:
@@ -181,8 +163,9 @@ def insert_data(table_name, data_dict):
 
     finally:
         # Close cursor and connection
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        close_conn(conn)
 
 
 def fetch_all_as_dict(table_name):
@@ -292,4 +275,56 @@ def delete_record_by_id(table_name, record_id):
         print(f"Error deleting record: {e}")
         return False
     finally:
+        close_conn(conn)
+
+
+import psycopg2
+from psycopg2 import sql
+
+
+def insert_record_and_get_id(table_name, data_dict):
+    """
+    Insert a record into a specified table using the provided dictionary of column-value pairs,
+    and return the auto-incremented ID of the inserted row.
+
+    :param table_name: Name of the table to insert data into.
+    :param data_dict: Dictionary containing column names as keys and the values to insert.
+    :return: ID of the inserted record, or None if insertion fails.
+    """
+    try:
+        conn=get_conn()
+        cursor = conn.cursor()
+
+        # Prepare the columns and values from the data_dict
+        columns = data_dict.keys()
+        values = tuple(data_dict.values())
+
+        # Dynamically construct the SQL query with placeholders
+        query = sql.SQL("INSERT INTO {} ({}) VALUES ({}) RETURNING id").format(
+            sql.Identifier(table_name),  # Table name
+            sql.SQL(', ').join(map(sql.Identifier, columns)),  # Column names
+            sql.SQL(', ').join(sql.Placeholder() * len(values))  # Placeholder for values
+        )
+
+        # Execute the insert query
+        cursor.execute(query, values)
+
+        # Fetch the inserted record's ID
+        inserted_id = cursor.fetchone()[0]
+
+        # Commit the transaction
+        conn.commit()
+
+        print(f"Record inserted successfully with ID: {inserted_id}")
+        return inserted_id
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        # Rollback the transaction in case of an error
+        conn.rollback()
+        return None
+
+    finally:
+        # Close cursor and connection
+        cursor.close()
         close_conn(conn)
