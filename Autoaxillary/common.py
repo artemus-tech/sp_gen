@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 
 
-def create_dir_with_date(path:str, prefix="sp_gen"):
+def create_dir_with_date(path: str, prefix="sp_gen"):
     """
     Creates a directory named with the current date (YYYY-MM-DD) if it does not exist.
     Returns:
@@ -26,28 +26,33 @@ def create_dir_with_date(path:str, prefix="sp_gen"):
     return full_data_directory_path
 
 
-def get_rmax(m:np.ndarray, column_index:int=3)->float:
+def get_rmax(m: np.ndarray, column_index: int = 3) -> float:
     rmax = np.max(m[:, column_index])
     return np_to_pg(rmax)
 
-def get_rmin(m:np.ndarray, column_index:int=3)->float:
+
+def get_rmin(m: np.ndarray, column_index: int = 3) -> float:
     rmin = np.min(m[:, column_index])
     return np_to_pg(rmin)
 
-def array1d_get_min(arr:np.ndarray)->typing.Union[float,None]:
+
+def array1d_get_min(arr: np.ndarray) -> typing.Union[float, None]:
     if array1d_is_non_zero_or_empty(arr):
         min = np.min(arr)
         return np_to_pg(min)
 
-def array1d_get_max(arr:np.ndarray)->typing.Union[float,None]:
+
+def array1d_get_max(arr: np.ndarray) -> typing.Union[float, None]:
     if array1d_is_non_zero_or_empty(arr):
         max = np.max(arr)
         return np_to_pg(max)
 
-def array1d_get_size(arr:np.ndarray)->typing.Union[float,None]:
+
+def array1d_get_size(arr: np.ndarray) -> typing.Union[float, None]:
     if array1d_is_non_zero_or_empty(arr):
         num = arr.shape[0]
         return np_to_pg(num)
+
 
 def array1d_is_non_zero_or_empty(a: np.ndarray):
     """
@@ -60,17 +65,17 @@ def array1d_is_non_zero_or_empty(a: np.ndarray):
                 return True
     return False
 
-def np_to_pg(value:Union[np.float64, np.int64])->Union[float,int]:
+
+def np_to_pg(value: Union[np.float64, np.int64]) -> Union[float, int]:
     if isinstance(value, (np.generic, np.number)):
         try:
-            result=value.item()
+            result = value.item()
         except AttributeError:
             print("Has not item() method")
             result = value
         return result
     else:
         return value
-
 
 
 def custom_std(arrays):
@@ -88,7 +93,6 @@ def custom_std(arrays):
 
     # Return the standard deviation with the custom divisor (N * (N - 1))
     return np.sqrt(sum_squared_diff / (N * (N - 1)))
-
 
 
 def convert_list_of_dicts_to_dict(list_of_dicts):
