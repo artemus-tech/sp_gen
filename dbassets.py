@@ -1,4 +1,15 @@
-from psycopg2 import extras
+import psycopg2
+from psycopg2 import extras, sql
+
+
+def get_conn():
+    return psycopg2.connect(
+       host="89.223.127.160",
+       database="default_db",
+       user="gen_user",
+       password="+N!hC5uH7YFAAq"
+    )
+'''
 
 def get_conn():
     return  psycopg2.connect(
@@ -7,7 +18,7 @@ def get_conn():
         user="postgres",
         password="Dictionary108$"
     )
-
+'''
 def close_conn(connection):
     """
     Close the database connection.
@@ -19,6 +30,19 @@ def close_conn(connection):
             connection.close()
     except Exception as e:
         print(f"Error closing connection: {e}")
+
+
+def close_cursor(cursor):
+    """
+    Close the database connection.
+
+    :param cursor: Database connection object.
+    """
+    try:
+        if cursor:
+            cursor.close()
+    except Exception as e:
+        print(f"Error closing cursor: {e}")
 
 def execute_query(connection, table_name, column_name, record_id):
     """
@@ -50,10 +74,9 @@ def execute_query(connection, table_name, column_name, record_id):
     except Exception as e:
         print(f"Error executing query: {e}")
         return None
-
     finally:
-        if cursor:
-            cursor.close()
+        close_cursor(cursor)
+
 
 def get_data_by_id(table_name, column_name, record_id):
     """
@@ -65,6 +88,7 @@ def get_data_by_id(table_name, column_name, record_id):
     :return: List of tuples containing the rows fetched.
     """
     connection = get_conn()
+
     if not connection:
         return None
     try:
@@ -98,29 +122,37 @@ def update_field_by_unique_field(table, target_field, where_field_name, where_fi
         # Rollback the transaction in case of an error
         conn.rollback()
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            close_conn(conn)
+        close_cursor(cursor)
+        close_conn(conn)
+#psql 'postgresql://gen_user:%2BN!hC5uH7YFAAq@89.223.127.160:5432/default_db'
+def get_fields_data(table_name:str, field_names:[str])->[dict]:
+    try:
+        conn = get_conn()
+        # Create a cursor object to interact with the database
+        cursor = conn.cursor()
+        # SQL query to select the specified fields from the specified table
+        fields_str = ', '.join(field_names)
 
-def get_fields_data(conn, table_name, field_names):
-    # Create a cursor object to interact with the database
-    cursor = conn.cursor()
-    # SQL query to select the specified fields from the specified table
-    fields_str = ', '.join(field_names)
-    query = f"SELECT {fields_str} FROM {table_name} WHERE real_nc=-1;"
-    # Execute the query
-    cursor.execute(query)
-    # Fetch all the results
-    rows = cursor.fetchall()
-    # Prepare a list of dictionaries, each representing one row
-    results = []
-    for row in rows:
-        row_dict = {field: row[i] for i, field in enumerate(field_names)}
-        results.append(row_dict)
-    # Close the cursor and connection
-    cursor.close()
-    return results
+        query = f"SELECT {fields_str} FROM {table_name} WHERE real_nc=-1;"
+
+        # Execute the query
+        cursor.execute(query)
+        # Fetch all the results
+        rows = cursor.fetchall()
+        # Prepare a list of dictionaries, each representing one row
+        results = []
+        for row in rows:
+            row_dict = {field: row[i] for i, field in enumerate(field_names)}
+            results.append(row_dict)
+        # Close the cursor and connection
+        return results
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
+    finally:
+        close_cursor(cursor)
+        close_conn(conn)
 
 
 def insert_data(table_name, data_dict):
@@ -163,8 +195,7 @@ def insert_data(table_name, data_dict):
 
     finally:
         # Close cursor and connection
-        if cursor:
-            cursor.close()
+        close_cursor(cursor)
         close_conn(conn)
 
 
@@ -196,9 +227,9 @@ def fetch_all_as_dict(table_name):
     finally:
 
         # Close the cursor
-        cursor.close()
+        close_cursor(cursor)
         # Close cursor and connection
-        connection.close()
+        close_conn(connection)
 
 
 def get_records_by_where(table_name, where_clauses):
@@ -277,11 +308,6 @@ def delete_record_by_id(table_name, record_id):
     finally:
         close_conn(conn)
 
-
-import psycopg2
-from psycopg2 import sql
-
-
 def insert_record_and_get_id(table_name, data_dict):
     """
     Insert a record into a specified table using the provided dictionary of column-value pairs,
@@ -292,7 +318,7 @@ def insert_record_and_get_id(table_name, data_dict):
     :return: ID of the inserted record, or None if insertion fails.
     """
     try:
-        conn=get_conn()
+        conn = get_conn()
         cursor = conn.cursor()
 
         # Prepare the columns and values from the data_dict
@@ -323,8 +349,7 @@ def insert_record_and_get_id(table_name, data_dict):
         # Rollback the transaction in case of an error
         conn.rollback()
         return None
-
     finally:
         # Close cursor and connection
-        cursor.close()
+        close_cursor(cursor)
         close_conn(conn)
