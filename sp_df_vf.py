@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import dbassets
 from Autoaxillary.common import create_dir_with_date
+import constants as const
 
 def get_spheres_intersect(r1, r2, centerDistance):
     if centerDistance >= r1 + r2:
@@ -114,12 +115,15 @@ def get_density_df(upperR, step, m):
 
 
 if __name__ == '__main__':
-    conn = dbassets.get_conn()
-    sql_result = dbassets.get_fields_data(conn, "sp_gen",
-                                          ["id","src_path", "rglobal","rmin", "rmax"])
+    current_path = dirname(const.path_to_sp_df_vf)
+    full_target_path = create_dir_with_date(current_path, "sp_df_vol_fr")
+
+    sql_result = dbassets.get_fields_data(table_name= "sp_gen", field_names=["id","src_path", "rglobal","rmin", "rmax"])
+
     n = 10
     should_same_plot_result = False
     current_iter_index=0
+
 
     for row in sql_result:
         print(current_iter_index)
@@ -155,9 +159,6 @@ if __name__ == '__main__':
             new_value=data.shape[0]
         )
 
-        current_path = dirname(row["src_path"])
-        full_target_path = create_dir_with_date(current_path,"sp_df_vol_fr")
-
         np.savetxt(f"{full_target_path}\\{row['id']}.txt", np.c_[arg, func])
 
         current_iter_index += 1
@@ -170,4 +171,3 @@ if __name__ == '__main__':
             plt.plot(arg, func, "go-", markersize=8, label="Density")
             plt.gcf()
             plt.savefig(f"{full_target_path}\\{row['id']}.png")
-    conn.close()

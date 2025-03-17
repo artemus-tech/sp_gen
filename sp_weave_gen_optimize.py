@@ -92,48 +92,49 @@ if __name__ == "__main__":
     else:
         excess_arr =settings["excess_arr"]
 
-    shape = settings["shape"]  # = 3
-    scale = settings["scale"]  # = 2
+    shape_arr = settings["shape"]  # = 3
+    scale_arr = settings["scale"]  # = 2
     NC_LIST = settings["NC"]  # = 0.2
     sp_number = settings["sp_number"]  # = 100000
     file_numb = settings["file_numb"]  # = 10
     C = settings["C"]  # = 0.10
     seriees_number = 5
 
-    for nc_single_value in NC_LIST:
-        for excess_single_value in excess_arr:
-            # number of planning spheres with a little bit increase offset
-            n_in_cube = get_n_in_cube(sp_number, excess_single_value)
-            # size of this vector is planning size of system
-            vect_r = generate_rand_pdf(n_in_cube, shape, scale)
-            # calculate rib
-            DCUBE = np.power(4.0 / 3.0 * np.pi * np.sum(np.power(vect_r, 3)) / (excess_single_value * nc_single_value), 1.0 / 3.0)
-            R = DCUBE / (2.0 * (1 + C))
+    for shape,scale in zip(shape_arr,scale_arr):
+        for nc_single_value in NC_LIST:
+            for excess_single_value in excess_arr:
+                # number of planning spheres with a little bit increase offset
+                n_in_cube = get_n_in_cube(sp_number, excess_single_value)
+                # size of this vector is planning size of system
+                vect_r = generate_rand_pdf(n_in_cube, shape, scale)
+                # calculate rib
+                DCUBE = np.power(4.0 / 3.0 * np.pi * np.sum(np.power(vect_r, 3)) / (excess_single_value * nc_single_value), 1.0 / 3.0)
+                R = DCUBE / (2.0 * (1 + C))
 
 
-            processes = []
-            k=0
+                k=0
 
-            row_id = dbassets.insert_data("sp_data", data_dict={
-                'shape': np_to_pg(shape),
-                'scale': np_to_pg(scale),
-                'n': np_to_pg(sp_number),
-                'excess': np_to_pg(excess_single_value),
-                'c': np_to_pg(C),
-                'rglobal': np_to_pg(R),
-                'nc': np_to_pg(nc_single_value)
-            })
+                row_id = dbassets.insert_data("sp_data", data_dict={
+                    'shape': np_to_pg(shape),
+                    'scale': np_to_pg(scale),
+                    'n': np_to_pg(sp_number),
+                    'excess': np_to_pg(excess_single_value),
+                    'c': np_to_pg(C),
+                    'rglobal': np_to_pg(R),
+                    'nc': np_to_pg(nc_single_value)
+                })
 
-            for j in range(seriees_number):
-                for i in range(file_numb):
-                    p = mp.Process(
-                        target=process_and_save,
-                        args=(k, vect_r, DCUBE, R, excess_single_value, shape, scale, sp_number, nc_single_value, n_in_cube, C, result_path, row_id)
-                    )
-                    p.start()
-                    processes.append(p)
-                    k+=1
-    
-                for p in processes:
-                    p.join()  # Wait for all processes to complete
+                for j in range(seriees_number):
+                    processes = []
+                    for i in range(file_numb):
+                        p = mp.Process(
+                            target=process_and_save,
+                            args=(k, vect_r, DCUBE, R, excess_single_value, shape, scale, sp_number, nc_single_value, n_in_cube, C, result_path, row_id)
+                        )
+                        p.start()
+                        processes.append(p)
+                        k+=1
+
+                    for p in processes:
+                        p.join()  # Wait for all processes to complete
 
