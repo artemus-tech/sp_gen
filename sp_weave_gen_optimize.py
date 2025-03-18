@@ -58,7 +58,9 @@ def process_and_save(i, vect_r, DCUBE, R, excess, shape, scale, sp_number, NC, m
     with Profiler():
         sp_gen_result = generate(vr=vect_r, cube=DCUBE, size=more_greater_sp_number)
         matrix_result = in_sphere(sp_gen_result, R)
-        file_path = os.path.join(path, f"sp_gen_{i}_excess={excess}_nc={NC}_n={more_greater_sp_number}.txt")
+        r_max = cm.get_rmax(matrix_result)
+        r_min = cm.get_rmin(matrix_result)
+        file_path = os.path.join(path,f"row_id={row_id}_series_no={i}_rglobal={R}_shape={shape}_scale={scale}_excess={excess}_nc={NC}_n={more_greater_sp_number}_rmax={r_max}_rmin={r_min}.txt")
         np.savetxt(file_path, matrix_result)
 
     if os.path.exists(file_path):
@@ -66,8 +68,8 @@ def process_and_save(i, vect_r, DCUBE, R, excess, shape, scale, sp_number, NC, m
             'shape': np_to_pg(shape),
             'scale': np_to_pg(scale),
             'rglobal': np_to_pg(R),
-            'rmax':cm.get_rmax(matrix_result),
-            'rmin':cm.get_rmin(matrix_result),
+            'rmax':r_min,
+            'rmin':r_max,
             'excess': np_to_pg(excess),
             'c': np_to_pg(C),
             'nc': np_to_pg(NC),

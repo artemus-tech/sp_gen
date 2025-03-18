@@ -1,3 +1,4 @@
+import os.path
 from os.path import dirname
 import numpy as np
 import matplotlib.pyplot as plt
@@ -118,7 +119,11 @@ if __name__ == '__main__':
     current_path = dirname(const.path_to_sp_df_vf)
     full_target_path = create_dir_with_date(current_path, "sp_df_vol_fr")
 
-    sql_result = dbassets.get_fields_data(table_name= "sp_gen", field_names=["id","src_path", "rglobal","rmin", "rmax"])
+    sql_result = dbassets.get_selected_fields_data_by_where(
+        table_name= "sp_gen",
+        field_names=["id","src_path", "rglobal","rmin", "rmax"],
+        where_clause='real_nc=-1 and n=30000 and row_id>413'
+    )
 
     n = 10
     should_same_plot_result = False
@@ -129,6 +134,10 @@ if __name__ == '__main__':
         print(current_iter_index)
         rglobal = float(row['rglobal'])
         rmax = float(row['rmax'])
+        
+        if not os.path.exists(row["src_path"]):
+            raise Exception(f'File {row["id"]} not found something went wrong')
+
         data = np.loadtxt(row["src_path"])
 
         r_mean = float(np.array([el for el in data[:, 3]]).mean())
@@ -136,14 +145,12 @@ if __name__ == '__main__':
         arg, func = get_density_df(rglobal + rmax, n, data)
         phi_by_five_sp_layers = float(np.mean(func[:5]))
 
-
         dbassets.update_field_by_unique_field(
             table="sp_gen",
             target_field="rmean",
             where_field_name="id",
             where_field_value=row['id'], new_value=r_mean
         )
-
         dbassets.update_field_by_unique_field(
             table="sp_gen",
             target_field = "real_nc", where_field_name="id",

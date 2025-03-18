@@ -125,7 +125,9 @@ def update_field_by_unique_field(table, target_field, where_field_name, where_fi
         close_cursor(cursor)
         close_conn(conn)
 #psql 'postgresql://gen_user:%2BN!hC5uH7YFAAq@89.223.127.160:5432/default_db'
-def get_fields_data(table_name:str, field_names:[str])->[dict]:
+
+
+def get_selected_fields_data_by_where(table_name:str, field_names:[str], where_clause: str = "")->[dict]:
     try:
         conn = get_conn()
         # Create a cursor object to interact with the database
@@ -133,7 +135,10 @@ def get_fields_data(table_name:str, field_names:[str])->[dict]:
         # SQL query to select the specified fields from the specified table
         fields_str = ', '.join(field_names)
 
-        query = f"SELECT {fields_str} FROM {table_name} WHERE real_nc=-1;"
+        query = f"SELECT {fields_str} FROM {table_name}"
+
+        if where_clause:
+            query += f' WHERE {where_clause}'
 
         # Execute the query
         cursor.execute(query)
