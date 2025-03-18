@@ -59,7 +59,7 @@ def sp_factor(x):
 def tmp_matrix(x, x0, y, y0, z, z0):
     return np.sqrt((x - x0) ** 2 + (y - y0) ** 2 + (z - z0) ** 2)
 
-def sp_runner(row: dict, q: np.ndarray[float]):
+def sp_runner(row: dict, q: np.ndarray[float],res_path:str):
     M = np.loadtxt(row['src_path'])
     R = row['rglobal']
     NC = row['nc']
@@ -74,8 +74,8 @@ def sp_runner(row: dict, q: np.ndarray[float]):
             NC=NC, q_num=q.shape[0], real_n=real_n,
             sp_global=sp_global, sp_tmp_const=sp_tmp_const,sp_local_volume=sp_local_volume,data=M,q=q)
 
-    result_dir_path = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval{row["id"]}')
-    result_full_path_to_file = os.path.join(result_dir_path, f'{row["id"]}.txt')
+    #result_dir_path = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval{row["id"]}')
+    result_full_path_to_file = os.path.join(res_path, f'{row["id"]}.txt')
 
     np.savetxt(result_full_path_to_file, np.c_[q, I])
 
@@ -97,16 +97,19 @@ def sp_runner(row: dict, q: np.ndarray[float]):
         )
 
 
-def worker(seq, q):
+def worker(seq, q, path):
     """The worker pulls an item (row) from the list and processes it with q."""
     while True:
         # Get the next ID (data row) from the queue
         if not seq.empty():
             id_data = seq.get()  # Pull data associated with a specific ID
-            sp_runner(id_data, q)  # Process it using the provided q
+            sp_runner(id_data, q, path)  # Process it using the provided q
             seq.task_done()  # Indicate that the task is complete
         else:
             break
+
+
+
 
 if __name__ == '__main__':
     settings = cfg.load_settings()
@@ -114,6 +117,7 @@ if __name__ == '__main__':
 
     sp_tmp_records =dbassets.get_records_by_where(table_name="sp_tmp",where_clauses={'evaluated':False})
     sp_gen_data_list = []
+    res_path = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval')
 
     for record in sp_tmp_records:
         sp_tmp_rec_gen_id = record["gen_id"]
@@ -131,7 +135,7 @@ if __name__ == '__main__':
     # Create and start worker processes
     processes = []
     for i in range(process_num):
-        p = multiprocessing.Process(target=worker, args=(in_queue, q))
+        p = multiprocessing.Process(target=worker, args=(in_queue, q, res_path))
         p.daemon = True  # Ensure processes exit when the main program finishes
         processes.append(p)
         p.start()
