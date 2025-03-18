@@ -93,6 +93,7 @@ if __name__ == "__main__":
         excess_arr = np.linspace(excess_min,excess_max,excess_num)
     else:
         excess_arr =settings["excess_arr"]
+    service_uuid= settings["service_id"]
 
     shape_arr = settings["shape"]  # = 3
     scale_arr = settings["scale"]  # = 2
@@ -123,7 +124,8 @@ if __name__ == "__main__":
                     'excess': np_to_pg(excess_single_value),
                     'c': np_to_pg(C),
                     'rglobal': np_to_pg(R),
-                    'nc': np_to_pg(nc_single_value)
+                    'nc': np_to_pg(nc_single_value),
+                    'source_id':service_uuid
                 })
 
                 for j in range(seriees_number):
