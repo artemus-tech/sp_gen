@@ -1,9 +1,19 @@
+import io
 import os
 import typing
 from datetime import datetime
 from typing import Union
 
 import numpy as np
+
+def from_binary(path:str)->np.ndarray:
+    # Use io.BytesIO to convert the binary data into a file-like object
+    file_like_object = io.BytesIO(path)
+
+    # Now, use numpy's loadtxt to read the data (assuming it's a CSV stored as binary)
+    # If it's a CSV, you can load it like this:
+    data = np.loadtxt(file_like_object)  # Specify delimiter as needed
+    return data
 
 
 def create_dir_with_date(path: str, prefix="sp_gen"):

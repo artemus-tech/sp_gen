@@ -3,6 +3,8 @@ import multiprocessing
 import os.path
 import numpy as np
 from numba import  njit
+from psycopg2 import Binary
+
 import constants as const
 import dbassets
 import Autoaxillary.common as cm
@@ -59,12 +61,15 @@ def sp_factor(x):
 def tmp_matrix(x, x0, y, y0, z, z0):
     return np.sqrt((x - x0) ** 2 + (y - y0) ** 2 + (z - z0) ** 2)
 
-def sp_runner(row: dict, q: np.ndarray[float],res_path:str):
-    M = np.loadtxt(row['src_path'])
+def sp_runner(row: dict, q: np.ndarray[float], res_path:str):
+    #M = np.loadtxt(row['src_path'])
+    M = np.loadtxt(row['extracted_path'])
+
     R = row['rglobal']
     NC = row['nc']
     real_n = M.shape[0]
     target_n = row['n']
+
     with Profiler():
         sp_local_volume, sp_global, sp_tmp_const =  sp_eval(matrix_xyzr=M, q_vect=q, R=R, NC=NC, target_n=target_n)
 
@@ -74,27 +79,29 @@ def sp_runner(row: dict, q: np.ndarray[float],res_path:str):
             NC=NC, q_num=q.shape[0], real_n=real_n,
             sp_global=sp_global, sp_tmp_const=sp_tmp_const,sp_local_volume=sp_local_volume,data=M,q=q)
 
-    #result_dir_path = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval{row["id"]}')
     result_full_path_to_file = os.path.join(res_path, f'{row["id"]}.txt')
 
     np.savetxt(result_full_path_to_file, np.c_[q, I])
 
     if os.path.exists(result_full_path_to_file):
-        dbassets.insert_data("sp_eval", {
-            'gen_id':int(row["id"]),
-            'src_path': result_full_path_to_file,
-            'qmin': cm.array1d_get_min(q),
-            'qmax': cm.array1d_get_max(q),
-            'qnum': cm.array1d_get_size(q)
-        })
-        #log state
-        dbassets.update_field_by_unique_field(
-            table="sp_tmp",
-            target_field="evaluated",
-            where_field_name="gen_id",
-            where_field_value=int(row["id"]),
-            new_value=True
-        )
+        with open(result_full_path_to_file, 'rb') as f:
+            file_data = f.read()
+            dbassets.insert_data("sp_eval", {
+                'gen_id':int(row["id"]),
+                'src_path': result_full_path_to_file,
+                'qmin': cm.array1d_get_min(q),
+                'qmax': cm.array1d_get_max(q),
+                'qnum': cm.array1d_get_size(q),
+                'file_data': Binary(file_data)
+            })
+            #log state
+            dbassets.update_field_by_unique_field(
+                table="sp_tmp",
+                target_field="evaluated",
+                where_field_name="gen_id",
+                where_field_value=int(row["id"]),
+                new_value=True
+            )
 
 
 def worker(seq, q, path):
@@ -117,11 +124,20 @@ if __name__ == '__main__':
 
     sp_tmp_records =dbassets.get_records_by_where(table_name="sp_tmp",where_clauses={'evaluated':False})
     sp_gen_data_list = []
-    res_path = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval')
+    res_path_dir = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval')
+    sp_gen_extracted = cm.create_dir_with_date(const.path_to_sp_gen, "sp_gen_extracted")
 
     for record in sp_tmp_records:
         sp_tmp_rec_gen_id = record["gen_id"]
         sp_gen_data = dbassets.get_data_by_id(const.active_table_dict["sp_gen"], "id", sp_tmp_rec_gen_id)
+        if not sp_gen_data:
+            raise  Exception(f'{sp_tmp_rec_gen_id} does not exists')
+        extracted_file_name = os.path.join(sp_gen_extracted, f'{sp_gen_data["id"]}.txt')
+        M = cm.from_binary(sp_gen_data['file_data'])
+        np.savetxt(extracted_file_name,M )
+        if os.path.exists(extracted_file_name):
+            sp_gen_data['extracted_path'] = extracted_file_name
+            del sp_gen_data['file_data']
         sp_gen_data_list.append(sp_gen_data)
 
     # Initialize the process pool and queue
@@ -135,7 +151,7 @@ if __name__ == '__main__':
     # Create and start worker processes
     processes = []
     for i in range(process_num):
-        p = multiprocessing.Process(target=worker, args=(in_queue, q, res_path))
+        p = multiprocessing.Process(target=worker, args=(in_queue, q, res_path_dir))
         p.daemon = True  # Ensure processes exit when the main program finishes
         processes.append(p)
         p.start()

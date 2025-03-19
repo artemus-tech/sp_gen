@@ -3,6 +3,8 @@ import os
 import multiprocessing as mp
 import numpy as np
 from numba import jit, njit
+from psycopg2 import Binary
+
 import constants as const
 import dbassets
 from Autoaxillary.common import np_to_pg
@@ -64,22 +66,26 @@ def process_and_save(i, vect_r, DCUBE, R, excess, shape, scale, sp_number, NC, m
         np.savetxt(file_path, matrix_result)
 
     if os.path.exists(file_path):
-        dbassets.insert_data(table_name='sp_gen', data_dict={
-            'shape': np_to_pg(shape),
-            'scale': np_to_pg(scale),
-            'rglobal': np_to_pg(R),
-            'rmax':r_min,
-            'rmin':r_max,
-            'excess': np_to_pg(excess),
-            'c': np_to_pg(C),
-            'nc': np_to_pg(NC),
-            'real_nc': -1,
-            'n': np_to_pg(sp_number),
-            'real_n': np_to_pg(matrix_result.shape[0]),
-            'series_no': np_to_pg(i),
-            'src_path': file_path,
-            'row_id':row_id
-        })
+        # Open the file in binary mode
+        with open(file_path, 'rb') as f:
+            file_data = f.read()
+            dbassets.insert_data(table_name='sp_gen', data_dict={
+                'shape': np_to_pg(shape),
+                'scale': np_to_pg(scale),
+                'rglobal': np_to_pg(R),
+                'rmax':r_min,
+                'rmin':r_max,
+                'excess': np_to_pg(excess),
+                'c': np_to_pg(C),
+                'nc': np_to_pg(NC),
+                'real_nc': -1,
+                'n': np_to_pg(sp_number),
+                'real_n': np_to_pg(matrix_result.shape[0]),
+                'series_no': np_to_pg(i),
+                'src_path': file_path,
+                'row_id':row_id,
+                'file_data':Binary(file_data)
+            })
 
 if __name__ == "__main__":
     result_path = cm.create_dir_with_date(path = const.current_path,prefix="sp_gen")

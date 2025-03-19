@@ -1,3 +1,4 @@
+import io
 import os.path
 from os.path import dirname
 import numpy as np
@@ -121,8 +122,8 @@ if __name__ == '__main__':
 
     sql_result = dbassets.get_selected_fields_data_by_where(
         table_name= "sp_gen",
-        field_names=["id","src_path", "rglobal","rmin", "rmax"],
-        where_clause='real_nc=-1 and n=30000 and row_id>413'
+        field_names=["id","src_path", "rglobal","rmin", "rmax", "file_data"],
+        where_clause='real_nc=-1 and row_id=148'
     )
 
     n = 10
@@ -138,7 +139,15 @@ if __name__ == '__main__':
         if not os.path.exists(row["src_path"]):
             raise Exception(f'File {row["id"]} not found something went wrong')
 
-        data = np.loadtxt(row["src_path"])
+        # Use io.BytesIO to convert the binary data into a file-like object
+        file_like_object = io.BytesIO(row["file_data"])
+
+        # Now, use numpy's loadtxt to read the data (assuming it's a CSV stored as binary)
+        # If it's a CSV, you can load it like this:
+        data = np.loadtxt(file_like_object)  # Specify delimiter as needed
+
+        #data = np.loadtxt(row["src_path"])
+        #data = np.loadtxt(row["src_path"])
 
         r_mean = float(np.array([el for el in data[:, 3]]).mean())
 

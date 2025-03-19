@@ -56,7 +56,10 @@ def execute_query(connection, table_name, column_name, record_id):
     """
     try:
         cursor = connection.cursor()
-        query = sql.SQL("""SELECT * FROM {table} WHERE {column} = %s""").format(table=sql.Identifier(table_name), column=sql.Identifier(column_name))
+        query = sql.SQL("""SELECT * FROM {table} WHERE {column} = %s""").format(
+            table=sql.Identifier(table_name),
+            column=sql.Identifier(column_name)
+        )
         cursor.execute(query, (record_id,))
         # Fetch one row and map it to a dictionary
         row = cursor.fetchone()
@@ -92,8 +95,7 @@ def get_data_by_id(table_name, column_name, record_id):
     if not connection:
         return None
     try:
-        rows = execute_query(connection, table_name, column_name, record_id)
-        return rows
+        return  execute_query(connection, table_name, column_name, record_id)
     finally:
         close_conn(connection)
 
