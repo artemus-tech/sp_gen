@@ -4,10 +4,11 @@ from psycopg2 import extras, sql
 
 def get_conn():
     return psycopg2.connect(
-       host="89.223.127.160",
-       database="default_db",
-       user="gen_user",
-       password="+N!hC5uH7YFAAq"
+        host="89.223.127.160",
+        database="default_db",
+        user="gen_user",
+        password="+N!hC5uH7YFAAq",
+        connect_timeout=0  #
     )
 '''
 
