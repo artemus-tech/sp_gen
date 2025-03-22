@@ -4,10 +4,11 @@ from psycopg2 import extras, sql
 
 def get_conn():
     return psycopg2.connect(
-       host="89.223.127.160",
-       database="default_db",
-       user="gen_user",
-       password="+N!hC5uH7YFAAq"
+        host="89.223.127.160",
+        database="default_db",
+        user="gen_user",
+        password="+N!hC5uH7YFAAq",
+        connect_timeout=0  #
     )
 '''
 
@@ -19,30 +20,6 @@ def get_conn():
         password="Dictionary108$"
     )
 '''
-def close_conn(connection):
-    """
-    Close the database connection.
-
-    :param connection: Database connection object.
-    """
-    try:
-        if connection:
-            connection.close()
-    except Exception as e:
-        print(f"Error closing connection: {e}")
-
-
-def close_cursor(cursor):
-    """
-    Close the database connection.
-
-    :param cursor: Database connection object.
-    """
-    try:
-        if cursor:
-            cursor.close()
-    except Exception as e:
-        print(f"Error closing cursor: {e}")
 
 def execute_query(connection, table_name, column_name, record_id):
     """
@@ -56,6 +33,7 @@ def execute_query(connection, table_name, column_name, record_id):
     """
     try:
         cursor = connection.cursor()
+
         query = sql.SQL("""SELECT * FROM {table} WHERE {column} = %s""").format(
             table=sql.Identifier(table_name),
             column=sql.Identifier(column_name)
@@ -78,7 +56,8 @@ def execute_query(connection, table_name, column_name, record_id):
         print(f"Error executing query: {e}")
         return None
     finally:
-        close_cursor(cursor)
+        if cursor:
+            cursor.close()
 
 
 def get_data_by_id(table_name, column_name, record_id):
@@ -90,14 +69,12 @@ def get_data_by_id(table_name, column_name, record_id):
     :param record_id: ID value to filter data.
     :return: List of tuples containing the rows fetched.
     """
-    connection = get_conn()
-
-    if not connection:
-        return None
+    conn = get_conn()
     try:
-        return  execute_query(connection, table_name, column_name, record_id)
+        return  execute_query(conn, table_name, column_name, record_id)
     finally:
-        close_conn(connection)
+        if conn:
+            conn.close()
 
 def update_field_by_unique_field(table, target_field, where_field_name, where_field_value ,new_value):
     """
@@ -122,12 +99,13 @@ def update_field_by_unique_field(table, target_field, where_field_name, where_fi
     except Exception as err:
         print(f"Error occurred: {err}")
         # Rollback the transaction in case of an error
-        conn.rollback()
+        if conn:
+            conn.rollback()
     finally:
-        close_cursor(cursor)
-        close_conn(conn)
-#psql 'postgresql://gen_user:%2BN!hC5uH7YFAAq@89.223.127.160:5432/default_db'
-
+        if  cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def get_selected_fields_data_by_where(table_name:str, field_names:[str], where_clause: str = "")->[dict]:
     try:
@@ -153,13 +131,14 @@ def get_selected_fields_data_by_where(table_name:str, field_names:[str], where_c
             results.append(row_dict)
         # Close the cursor and connection
         return results
-
     except Exception as e:
         print(f"Error occurred: {e}")
         return None
     finally:
-        close_cursor(cursor)
-        close_conn(conn)
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 def insert_data(table_name, data_dict):
@@ -198,12 +177,15 @@ def insert_data(table_name, data_dict):
     except Exception as e:
         print(f"Error occurred: {e}")
         # Rollback the transaction in case of an error
-        conn.rollback()
+        if conn:
+            conn.rollback()
 
     finally:
         # Close cursor and connection
-        close_cursor(cursor)
-        close_conn(conn)
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 def fetch_all_as_dict(table_name):
@@ -215,9 +197,9 @@ def fetch_all_as_dict(table_name):
     :return: List of dictionaries, where each dictionary represents a row
     """
     try:
-        connection = get_conn()
+        conn = get_conn()
         # Create a cursor with dictionary-based results
-        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         # Query to fetch all rows from the specified table
         query = f"SELECT * FROM {table_name};"
@@ -234,9 +216,11 @@ def fetch_all_as_dict(table_name):
     finally:
 
         # Close the cursor
-        close_cursor(cursor)
+        if cursor:
+            cursor.close()
         # Close cursor and connection
-        close_conn(connection)
+        if conn:
+            conn.close()
 
 
 def get_records_by_where(table_name, where_clauses):
@@ -279,7 +263,9 @@ def get_records_by_where(table_name, where_clauses):
         return []
 
     finally:
-        conn.close()
+        if conn:
+            conn.close()
+
 
 
 def delete_record_by_id(table_name, record_id):
@@ -313,7 +299,8 @@ def delete_record_by_id(table_name, record_id):
         print(f"Error deleting record: {e}")
         return False
     finally:
-        close_conn(conn)
+        if conn:
+            conn.close()
 
 def insert_record_and_get_id(table_name, data_dict):
     """
@@ -358,5 +345,7 @@ def insert_record_and_get_id(table_name, data_dict):
         return None
     finally:
         # Close cursor and connection
-        close_cursor(cursor)
-        close_conn(conn)
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
