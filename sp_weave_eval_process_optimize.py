@@ -122,7 +122,11 @@ if __name__ == '__main__':
     settings = cfg.load_settings()
     q = init_q_vector(settings)
 
-    sp_tmp_records =dbassets.get_records_by_where(table_name="sp_tmp",where_clauses={'evaluated':False})
+    sp_tmp_records =dbassets.get_records_by_where(table_name="sp_tmp",
+                                                  where_clauses={
+                                                      'evaluated':False,
+                                                      'service_id':settings['service_id']
+                                                  })
     sp_gen_data_list = []
     res_path_dir = cm.create_dir_with_date(const.current_path, prefix=f'sp_eval')
     sp_gen_extracted = cm.create_dir_with_date(const.path_to_sp_gen, "sp_gen_extracted")
