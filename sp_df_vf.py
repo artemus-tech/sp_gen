@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import dbassets
 from Autoaxillary.common import create_dir_with_date
 import constants as const
+import config as cfg
 
 def get_spheres_intersect(r1, r2, centerDistance):
     if centerDistance >= r1 + r2:
@@ -119,11 +120,12 @@ def get_density_df(upperR, step, m):
 if __name__ == '__main__':
     current_path = dirname(const.path_to_sp_df_vf)
     full_target_path = create_dir_with_date(current_path, "sp_df_vol_fr")
+    settings=cfg.load_settings()
 
     sql_result = dbassets.get_selected_fields_data_by_where(
         table_name= "sp_gen",
-        field_names=["id","src_path", "rglobal","rmin", "rmax", "file_data"],
-        where_clause="real_nc=-1 and row_id in(960,1153,1120,1119,1115)"
+        field_names=["id","src_path", "rglobal","rmin", "rmax"],
+        where_clause=f"real_nc=-1 and row_id in(select id from sp_data where source_id='{settings['service_id']}')"
     )
 
     n = 10
@@ -136,11 +138,13 @@ if __name__ == '__main__':
         rglobal = float(row['rglobal'])
         rmax = float(row['rmax'])
         
-        #if os.path.exists(row["src_path"]):
-        #    data = np.loadtxt(row["src_path"])
+        if os.path.exists(row["src_path"]):
+            data = np.loadtxt(row["src_path"])
+        else:
+            raise Exception('File Not found')
         #else:
-        file_like_object = io.BytesIO(row["file_data"])
-        data = np.loadtxt(file_like_object)
+        #file_like_object = io.BytesIO(row["file_data"])
+        #data = np.loadtxt(file_like_object)
 
         r_mean = float(np.array([el for el in data[:, 3]]).mean())
 
