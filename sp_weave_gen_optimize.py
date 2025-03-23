@@ -62,7 +62,7 @@ def process_and_save(i, vect_r, DCUBE, R, excess, shape, scale, sp_number, NC, m
         matrix_result = in_sphere(sp_gen_result, R)
         r_max = cm.get_rmax(matrix_result)
         r_min = cm.get_rmin(matrix_result)
-        file_path = os.path.join(path,f"row_id={row_id}_series_no={i}_rglobal={R}_shape={shape}_scale={scale}_excess={excess}_nc={NC}_n={more_greater_sp_number}_rmax={r_max}_rmin={r_min}.txt")
+        file_path = os.path.join(path, f"row_id={row_id}_series_no={i}_rglobal={R}_shape={shape}_scale={scale}_excess={excess}_nc={NC}_n={more_greater_sp_number}_rmax={r_max}_rmin={r_min}.txt")
         np.savetxt(file_path, matrix_result)
 
     if os.path.exists(file_path):
@@ -88,7 +88,7 @@ def process_and_save(i, vect_r, DCUBE, R, excess, shape, scale, sp_number, NC, m
             })
 
 if __name__ == "__main__":
-    result_path = cm.create_dir_with_date(path = const.current_path,prefix="sp_gen")
+    result_path = cm.create_dir_with_date(path =  const.path_to_sp_gen,prefix="sp_gen")
     settings = cfg.load_settings()
     excess_flag = settings["excess_arr_defined"]
 
